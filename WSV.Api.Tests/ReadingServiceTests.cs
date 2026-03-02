@@ -33,7 +33,7 @@ public class ReadingServiceTests
             
         var service = new ReadingService(context, mockCache.Object);
 
-        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp, 10);
+        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp);
 
         Assert.Empty(result);
     }
@@ -58,7 +58,7 @@ public class ReadingServiceTests
 
         var service = new ReadingService(context, mockCache.Object);
 
-        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp, 10);
+        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp);
 
         Assert.Single(result);
         Assert.Equal(11, result[0].SourceId);
@@ -74,6 +74,9 @@ public class ReadingServiceTests
 
         var mockCache = new Mock<IReadingCacheService>();
         mockCache
+            .Setup(c => c.GetOldestTimestamp(11))
+            .Returns(timestamp.AddMinutes(-10));
+        mockCache
             .Setup(c => c.GetRecentOne(11))
             .Returns(new List<SourceReading>{
                 new SourceReading
@@ -85,7 +88,7 @@ public class ReadingServiceTests
         
         var service = new ReadingService(context, mockCache.Object);
 
-        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp, 10);
+        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp);
     
         Assert.Single(result);
         Assert.Equal(11, result[0].SourceId);
@@ -101,24 +104,27 @@ public class ReadingServiceTests
         context.SourceReadings.Add(new SourceReading
         {
             SourceId = 11,
-            Timestamp = timestamp.AddMinutes(-10)
+            Timestamp = timestamp.AddMinutes(-20)
         });
         await context.SaveChangesAsync();
 
         var mockCache = new Mock<IReadingCacheService>();
+        mockCache
+            .Setup(c => c.GetOldestTimestamp(11))
+            .Returns(timestamp.AddMinutes(-10));
         mockCache
             .Setup(c => c.GetRecentOne(11))
             .Returns(new List<SourceReading>{
                 new SourceReading
                 {
                     SourceId = 11,
-                    Timestamp = timestamp.AddMinutes(-20)
+                    Timestamp = timestamp.AddMinutes(-10)
                 }
             });
         
         var service = new ReadingService(context, mockCache.Object);
 
-        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp, 10);
+        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp);
 
         Assert.Equal(2, result.Count);
         Assert.Equal(timestamp.AddMinutes(-10), result[0].Timestamp);
@@ -145,7 +151,7 @@ public class ReadingServiceTests
 
         var service = new ReadingService(context, mockCache.Object);
 
-        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp, 10);
+        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp);
 
         Assert.Empty(result);
     }
@@ -170,7 +176,7 @@ public class ReadingServiceTests
 
         var service = new ReadingService(context, mockCache.Object);
 
-        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp, 10);
+        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp);
 
         Assert.Empty(result);
     }
@@ -184,23 +190,26 @@ public class ReadingServiceTests
         context.SourceReadings.AddRange(new SourceReading
         {
             SourceId = 11,
-            Timestamp = timestamp.AddMinutes(-10)
+            Timestamp = timestamp.AddMinutes(-15)
         },
         new SourceReading
         {
             SourceId = 11,
-            Timestamp = timestamp.AddMinutes(-15)
+            Timestamp = timestamp.AddMinutes(-20)
         });
         await context.SaveChangesAsync();
 
         var mockCache = new Mock<IReadingCacheService>();
+        mockCache
+            .Setup(c => c.GetOldestTimestamp(11))
+            .Returns(timestamp.AddMinutes(-15));
         mockCache
             .Setup(c => c.GetRecentOne(11))
             .Returns(new List<SourceReading>{
                 new SourceReading
                 {
                     SourceId = 11,
-                    Timestamp = timestamp.AddMinutes(-20)
+                    Timestamp = timestamp.AddMinutes(-10)
                 },
                 new SourceReading
                 {
@@ -211,7 +220,7 @@ public class ReadingServiceTests
         
         var service = new ReadingService(context, mockCache.Object);
 
-        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp, 10);
+        var result = await service.GetRawHistoryAsync(11, timestamp.AddMinutes(-30), timestamp);
 
         Assert.Equal(3, result.Count);
         Assert.Equal(timestamp.AddMinutes(-10), result[0].Timestamp);
