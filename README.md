@@ -8,16 +8,27 @@ The primary goal of this project was to design and implement a backend architect
 
 ---
 
-## Key Features
+## Key Implementation Decisions
 
-- Simulated data sources producing time-series readings
-- Event-driven processing pipeline
-- In-memory buffering + short-term cache for recent data
-- Persistent storage for historical queries
-- REST API (public + protected endpoints)
-- JWT authentication + role-based authorization
-- Angular UI with authentication-driven behavior
+- **Dynamic buffer with overflow channels** – The in-memory buffer
+  (built on .NET Channels) automatically expands by adding overflow
+  channels when load exceeds 60% capacity, and shrinks them back when
+  pressure drops. This prevents data loss under burst traffic without
+  pre-allocating memory for peak load.
 
+- **Two-layer read strategy** – Recent data is served from a TTL-expiring
+  in-memory cache; historical queries hit the database. When cache and DB
+  results overlap, deduplication is handled via a timestamp-keyed Dictionary
+  in a single pass. Historical queries automatically switch between raw and
+  time-bucket aggregated SQL depending on result count.
+
+- **Service lifetime design** – Cache and buffer are singletons (shared state
+  across the app); ReadingService is scoped (one per request). Background
+  services use IServiceScopeFactory to resolve scoped DbContext safely.
+
+- **Unit tested with xUnit and Moq** – test cover the core read logic:
+  DB-only, cache-only, cache+DB overlap with deduplication, time-boundary
+  filtering, and all three lag states (NoLiveData / DbEmpty / Ok).
 ---
 
 ## Tech Stack
@@ -26,6 +37,9 @@ The primary goal of this project was to design and implement a backend architect
 - ASP.NET Core Web API
 - Entity Framework Core
 - Background services (IHostedService)
+- PostgreSQL
+- xUnit
+- Moq
 
 **Frontend**
 - Angular
