@@ -21,7 +21,7 @@ public class ReadingService : IReadingService
     {
         var start = from ?? DateTimeOffset.UtcNow.AddDays(-1);
         var end = to ?? DateTimeOffset.UtcNow;
-        var take = Math.Clamp(limit ?? 10, 1, 5000);
+        var take = Math.Clamp(limit ?? 1000, 1, 5000);
 
         var query = _context.SourceReadings
             .AsNoTracking()
@@ -34,25 +34,38 @@ public class ReadingService : IReadingService
         if(count > take)
             return await GetAggregatedHistoryAsync(sourceId, start, end, take);
         
-        return await GetRawHistoryAsync(sourceId, start, end, take);
+        return await GetRawHistoryAsync(sourceId, start, end);
     }
 
-    public async Task<List<ReadingDto>> GetRawHistoryAsync(int sourceId, DateTimeOffset from, DateTimeOffset to, int limit)
+    public async Task<List<ReadingDto>> GetRawHistoryAsync(int sourceId, DateTimeOffset from, DateTimeOffset to)
     {
-        var query = _context.SourceReadings
-            .AsNoTracking()
-            .Where(t => t.SourceId == sourceId)
-            .Where(u => u.Timestamp >= from)
-            .Where(v => v.Timestamp < to);    
-        
-        var readings = await query   
-            .OrderByDescending(r => r.Timestamp)  
-            .Take(limit)  
-            .ToListAsync();
+        IEnumerable<SourceReading> cacheFiltered = Enumerable.Empty<SourceReading>();
+        IEnumerable<SourceReading> readings = Enumerable.Empty<SourceReading>();
 
-        var cacheReadings = _readingCacheService.GetRecentOne(sourceId);
-        IEnumerable<SourceReading> cacheFiltered = cacheReadings;
-        cacheFiltered = cacheFiltered.Where(r => r.Timestamp < to);
+        var cacheOldest = _readingCacheService.GetOldestTimestamp(sourceId);
+
+        if(cacheOldest != null && cacheOldest < to)
+        {
+            var cacheReadings = _readingCacheService.GetRecentOne(sourceId);
+            cacheFiltered = cacheReadings
+                .Where(r => r.Timestamp < to)
+                .Where(r => r.Timestamp >= from);
+        }
+
+        bool needDb = cacheOldest == null || cacheOldest > from;
+        if(needDb)
+        {
+            var dbTo = cacheOldest ?? to;
+
+            readings = await _context.SourceReadings
+                .AsNoTracking()
+                .Where(t => t.SourceId == sourceId)
+                .Where(u => u.Timestamp >= from)
+                .Where(v => v.Timestamp < dbTo)
+                .OrderByDescending(r => r.Timestamp)  
+                .ToListAsync();
+        }
+        
 
         var merged = new Dictionary<DateTimeOffset, ReadingDto>();
         foreach (var d in cacheFiltered.Select(MapToDto))
@@ -62,7 +75,6 @@ public class ReadingService : IReadingService
 
         return merged.Values
             .OrderByDescending(r => r.Timestamp)
-            .Take(limit)
             .ToList();
     }
 

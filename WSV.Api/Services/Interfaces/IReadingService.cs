@@ -13,8 +13,7 @@ public interface IReadingService
     Task<List<ReadingDto>> GetRawHistoryAsync(
         int sourceId,
         DateTimeOffset from,
-        DateTimeOffset to,
-        int limit);
+        DateTimeOffset to);
 
     Task<List<ReadingDto>> GetAggregatedHistoryAsync(
         int sourceId,

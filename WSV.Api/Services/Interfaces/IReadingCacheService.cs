@@ -8,5 +8,7 @@ public interface IReadingCacheService
 
     SourceReading? GetLatestOne(int sourceId);
 
-    void SetRecentReading(SourceReading reading); 
+    void SetRecentReading(SourceReading reading);
+
+    DateTimeOffset? GetOldestTimestamp(int sourceId); 
 }

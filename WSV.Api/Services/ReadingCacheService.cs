@@ -100,4 +100,17 @@ public class ReadingCacheService : IReadingCacheService
             q.Dequeue();
         }
     }
+
+    public DateTimeOffset? GetOldestTimestamp(int sourceId)
+    {
+        lock (_lock)
+        {
+            ExpireOldReadingsLock(sourceId, DateTimeOffset.UtcNow);
+
+            if(_cache.TryGetValue(sourceId, out var q) && q.Count> 0)
+                return q.Peek().Timestamp;
+            
+            return null;
+        }
+    }
 }   
