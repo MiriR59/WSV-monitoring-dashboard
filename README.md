@@ -7,6 +7,11 @@ The system processes these readings through an event-driven pipeline, temporaril
 The primary goal of this project was to design and implement a backend architecture that models real-world data-flow systems, focusing on service lifecycles, data consistency, authorization, and separation of concerns.
 
 ---
+⚠️ Note:
+Right now, the app is configured to connect to a local PostgreSQL instance. 
+Dockerized database setup will be added soon to make the project runnable anywhere.
+
+---
 
 ## Key Implementation Decisions
 
