@@ -55,13 +55,11 @@ public class ReadingService : IReadingService
         bool needDb = cacheOldest == null || cacheOldest > from;
         if(needDb)
         {
-            var dbTo = cacheOldest ?? to;
-
             readings = await _context.SourceReadings
                 .AsNoTracking()
                 .Where(t => t.SourceId == sourceId)
                 .Where(u => u.Timestamp >= from)
-                .Where(v => v.Timestamp < dbTo)
+                .Where(v => v.Timestamp < to)
                 .OrderByDescending(r => r.Timestamp)  
                 .ToListAsync();
         }

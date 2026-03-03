@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: wsv_monitoring
+      POSTGRES_USER: wsv_user
+      POSTGRES_PASSWORD: dashboard
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wsv_user -d wsv_monitoring"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: ./WSV.Api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=wsv_monitoring;Username=wsv_user;Password=dashboard
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+
+  frontend:
+    build: ./WSV.App
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      - app
+
+volumes:
+  postgres_data:
