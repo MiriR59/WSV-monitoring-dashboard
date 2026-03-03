@@ -7,11 +7,6 @@ The system processes these readings through an event-driven pipeline, temporaril
 The primary goal of this project was to design and implement a backend architecture that models real-world data-flow systems, focusing on service lifecycles, data consistency, authorization, and separation of concerns.
 
 ---
-⚠️ Note:
-Right now, the app is configured to connect to a local PostgreSQL instance. 
-Dockerized database setup will be added soon to make the project runnable anywhere.
-
----
 
 ## Key Implementation Decisions
 
@@ -31,7 +26,7 @@ Dockerized database setup will be added soon to make the project runnable anywhe
   across the app); ReadingService is scoped (one per request). Background
   services use IServiceScopeFactory to resolve scoped DbContext safely.
 
-- **Unit tested with xUnit and Moq** – test cover the core read logic:
+- **Unit tested with xUnit and Moq** – tests cover the core read logic:
   DB-only, cache-only, cache+DB overlap with deduplication, time-boundary
   filtering, and all three lag states (NoLiveData / DbEmpty / Ok).
 ---
@@ -113,27 +108,10 @@ This setup demonstrates:
 - JWT-based authentication
 - Role-based authorization policies
 
-### Prerequisites
-- .NET 8 SDK
-- Node.js (LTS recommended)
-- npm (bundled with Node.js)
+### Running with Docker
 
-### Restore .NET local tools
-```bash
-dotnet tool restore
-```
-
-### Run Backend (API)
-
-```bash
-cd WSV.Api
-dotnet restore
-dotnet run
-```
-
-### Run Frontend (Angular)
-```bash
-cd WSV.App
-npm install
-npm start
-```
+1. Install Docker
+2. Clone the repo
+3. Run `docker compose up --build`
+4. Frontend: http://localhost:4200
+5. API / Swagger: http://localhost:8080/swagger
