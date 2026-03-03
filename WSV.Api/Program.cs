@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+using WSV.Api.Services.History;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,9 @@ builder.Services.AddHostedService<DbWriterService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IReadingService, ReadingService>();
+builder.Services.AddScoped<RawHistoryStrategy>();
+builder.Services.AddScoped<AggregatedHistoryStrategy>();
+builder.Services.AddScoped<HistoryStrategySelector>();
 
 builder.Services.Configure<BufferOptions>(
     builder.Configuration.GetSection("BufferOptions"));
