@@ -1,10 +1,70 @@
 # WSV - Monitoring Dashboard
 ## Overview
 
-Web Supervisor is a backend-focused monitoring dashboard that simulates multiple data sources producing time-based readings.  
-The system processes these readings through an event-driven pipeline, temporarily stores recent data in memory, and persists historical data into a database for long-term access.
+Web Supervisor is a backend-focused monitoring dashboard that simulates multiple data sources producing time-based readings. The system processes these readings through an event-driven pipeline, temporarily stores recent data in cache, buffers the data and persists historical data into a database for long-term access.
 
 The primary goal of this project was to design and implement a backend architecture that models real-world data-flow systems, focusing on service lifecycles, data consistency, authorization, and separation of concerns.
+
+---
+
+## Architecture Overview
+```
+┌─────────────────────┐
+│   Angular Frontend  │
+│    (Port 4200)      │
+└──────────┬──────────┘
+           │ HTTP/REST
+┌──────────▼─────────────────────────────────┐
+│              ASP.NET Core API (Port 8080)  │
+│                                            │
+│  ┌────────────┐         ┌─────────────┐    │
+│  │Controllers │────────>│  Services   │    │
+│  │  (thin)    │         │  (business) │    │
+│  └────────────┘         └──────┬──────┘    │
+│                                │           │
+│                                │ reads     │
+│                           ┌────▼──────┐    │
+│                           │   Cache   │    │
+│                           │(60s TTL)  │    │
+│                           └─────▲─────┘    │
+│                                 │          │
+│  ┌──────────────────┐           │          │
+│  │ GeneratorService │           │ updates  │
+│  │   (Hosted)       │           │          │
+│  └────────┬─────────┘           │          │
+│           │ produces            │          │
+│           ▼                     │          │
+│  ┌─────────────────────────┐    │          │
+│  │  DynamicBufferService   │────┘          │
+│  │  (Singleton, Channel)   │               │
+│  │  • Auto-expand          │               │
+│  │  • Auto-shrink          │               │
+│  └────────┬────────────────┘               │
+│           │ consumes                       │
+│           ▼                                │
+│  ┌──────────────────┐                      │
+│  │  DbWriterService │                      │
+│  │     (Hosted)     │                      │
+│  │ • Batch writes   │                      │
+│  │ • Slow/Fast mode │                      │
+│  └────────┬─────────┘                      │
+└───────────┼────────────────────────────────┘
+            │ writes
+       ┌────▼────────┐
+       │ PostgreSQL  │◄────reads────(Services)
+       └─────────────┘
+```
+
+## Data Flow (High Level)
+
+1. Hosted service generates a reading for a given source.
+2. Reading is pushed into an in-memory buffer / pipeline.
+3. Recent readings are stored in short-term cache (for near real-time endpoints).
+4. Readings are persisted into the database (for historical endpoints).
+5. API exposes:
+   - near real-time data (cache-based)
+   - historical data (DB-based)
+   - management endpoints (protected)
 
 ---
 
@@ -31,6 +91,22 @@ The primary goal of this project was to design and implement a backend architect
   filtering, and all three lag states (NoLiveData / DbEmpty / Ok).
 ---
 
+## Project Structure
+```
+WSV-monitoring-dashboard/
+├── WSV.Api/              # ASP.NET Core backend
+│   ├── Controllers/      # Thin HTTP layer
+│   ├── Services/         # Business logic
+│   ├── Models/           # Domain entities
+│   ├── Data/             # EF Core context
+│   └── Configuration/    # Options classes
+├── WSV.Api.Tests/        # Unit tests
+├── WSV.App/              # Angular frontend
+└── WSV.sln               # .NET solution
+```
+
+---
+
 ## Tech Stack
 
 **Backend**
@@ -38,8 +114,7 @@ The primary goal of this project was to design and implement a backend architect
 - Entity Framework Core
 - Background services (IHostedService)
 - PostgreSQL
-- xUnit
-- Moq
+- xUnit + Moq
 
 **Frontend**
 - Angular
@@ -47,29 +122,10 @@ The primary goal of this project was to design and implement a backend architect
 **Other**
 - JWT authentication
 - Role-based authorization
+- Docker + Docker Compose
 
 ---
 
-## Data Flow (High Level)
-
-1. Hosted service generates a reading for a given source.
-2. Reading is pushed into an in-memory buffer / pipeline.
-3. Recent readings are stored in short-term cache (for near real-time endpoints).
-4. Readings are persisted into the database (for historical endpoints).
-5. API exposes:
-   - near real-time data (cache-based)
-   - historical data (DB-based)
-   - management endpoints (protected)
-
----
-
-## Repository Structure
-
-- `WSV.Api/` – ASP.NET Core backend (API + background services)
-- `WSV.App/` – Angular frontend
-- `WSV.sln` – .NET solution
-
----
 
 ## Demo Users & Authorization
 
@@ -102,11 +158,6 @@ On startup, demo users are seeded automatically.
 ---
 
 ## Getting Started
-
-This setup demonstrates:
-- Public vs protected endpoints
-- JWT-based authentication
-- Role-based authorization policies
 
 ### Running with Docker
 
