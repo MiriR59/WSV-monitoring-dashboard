@@ -9,12 +9,12 @@ public class ReadingService : IReadingService
 {
     private readonly AppDbContext _context;
     private readonly IReadingCacheService _readingCacheService;
-    private readonly HistoryStrategySelector _selector;
+    private readonly IHistoryStrategySelector _selector;
 
     public ReadingService(
         AppDbContext context,
         IReadingCacheService readingCacheService,
-        HistoryStrategySelector selector)
+        IHistoryStrategySelector selector)
     {
         _context = context;
         _readingCacheService = readingCacheService;

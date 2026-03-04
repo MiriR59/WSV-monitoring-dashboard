@@ -28,7 +28,7 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IReadingService, ReadingService>();
 builder.Services.AddScoped<RawHistoryStrategy>();
 builder.Services.AddScoped<AggregatedHistoryStrategy>();
-builder.Services.AddScoped<HistoryStrategySelector>();
+builder.Services.AddScoped<IHistoryStrategySelector, HistoryStrategySelector>();
 
 builder.Services.Configure<BufferOptions>(
     builder.Configuration.GetSection("BufferOptions"));

@@ -1,6 +1,6 @@
 namespace WSV.Api.Services.History;
 
-public class HistoryStrategySelector
+public class HistoryStrategySelector : IHistoryStrategySelector
 {
     private readonly RawHistoryStrategy _raw;
     private readonly AggregatedHistoryStrategy _aggregated;
