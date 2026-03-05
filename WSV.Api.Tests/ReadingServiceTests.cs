@@ -1,10 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Moq;
+﻿using Moq;
 using WSV.Api.Data;
 using WSV.Api.Models;
 using WSV.Api.Services;
 using WSV.Api.Services.History;
-using Xunit.Sdk;
 
 namespace WSV.Api.Tests;
 

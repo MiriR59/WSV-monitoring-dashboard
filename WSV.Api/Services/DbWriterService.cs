@@ -78,7 +78,7 @@ public class DbWriterService : BackgroundService
                 batchSize, batch.Count, _buffer.BufferedCount, batchSize == _slowBatch ? "SLOW" : "NORMAL");
         }
     }
-    // %  returns what remains after the division, slowmode at the start of each 5 min cycle
+    // %  returns what remains after the division, slowmode at the start of each cycle
     private bool IsSlowMode(DateTime nowUtc)
     {
         var elapsed = nowUtc - _startUtc;
