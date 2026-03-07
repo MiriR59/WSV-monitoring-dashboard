@@ -18,31 +18,31 @@ The primary goal of this project was to design and implement a backend architect
 │              ASP.NET Core API (Port 8080)  │
 │                                            │
 │  ┌────────────┐         ┌─────────────┐    │
-│  │Controllers │────────>│  Services   │    │
-│  │  (thin)    │         │  (business) │    │
+│  │ Controllers│────────>│  Services   │    │
+│  │   (thin)   │         │  (business) │    │
 │  └────────────┘         └──────┬──────┘    │
 │                                │           │
 │                                │ reads     │
-│                           ┌────▼──────┐    │
-│                           │   Cache   │    │
-│                           │(60s TTL)  │    │
-│                           └─────▲─────┘    │
-│                                 │          │
-│  ┌──────────────────┐           │          │
-│  │ GeneratorService │           │ updates  │
-│  │   (Hosted)       │           │          │
-│  └────────┬─────────┘           │          │
-│           │ produces            │          │
-│           ▼                     │          │
-│  ┌─────────────────────────┐    │          │
-│  │  DynamicBufferService   │────┘          │
+│                          ┌─────▼─────┐     │
+│                          │   Cache   │     │
+│                          │ (60s TTL) │     │
+│                          └─────▲─────┘     │
+│                                │           │
+│  ┌──────────────────┐          │           │
+│  │ GeneratorService │          │ updates   │
+│  │     (Hosted)     │          │           │
+│  └────────┬─────────┘          │           │
+│           │ produces           │           │
+│           │                    │           │
+│  ┌────────▼────────────────┐   │           │
+│  │  DynamicBufferService   │───┘           │
 │  │  (Singleton, Channel)   │               │
 │  │  • Auto-expand          │               │
 │  │  • Auto-shrink          │               │
 │  └────────┬────────────────┘               │
 │           │ consumes                       │
-│           ▼                                │
-│  ┌──────────────────┐                      │
+│           │                                │
+│  ┌────────▼─────────┐                      │
 │  │  DbWriterService │                      │
 │  │     (Hosted)     │                      │
 │  │ • Batch writes   │                      │
@@ -85,25 +85,15 @@ The primary goal of this project was to design and implement a backend architect
 - **Service lifetime design** – Cache and buffer are singletons (shared state
   across the app); ReadingService is scoped (one per request). Background
   services use IServiceScopeFactory to resolve scoped DbContext safely.
-
-- **Unit tested with xUnit and Moq** – tests cover the core read logic:
-  DB-only, cache-only, cache+DB overlap with deduplication, time-boundary
-  filtering, and all three lag states (NoLiveData / DbEmpty / Ok).
 ---
 
-## Project Structure
-```
-WSV-monitoring-dashboard/
-├── WSV.Api/              # ASP.NET Core backend
-│   ├── Controllers/      # Thin HTTP layer
-│   ├── Services/         # Business logic
-│   ├── Models/           # Domain entities
-│   ├── Data/             # EF Core context
-│   └── Configuration/    # Options classes
-├── WSV.Api.Tests/        # Unit tests
-├── WSV.App/              # Angular frontend
-└── WSV.sln               # .NET solution
-```
+## Testing
+
+Unit tests are written with xUnit and Moq, covering:
+- Raw history strategy (DB-only, cache-only, overlap deduplication, time filtering)
+- Strategy selection (raw vs. aggregate switching logic)
+- Database lag states (NoLiveData / DbEmpty / Ok)
+- Source cache behavior (empty/filled, copy-not-reference verification, updating)
 
 ---
 
