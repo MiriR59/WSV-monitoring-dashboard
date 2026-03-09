@@ -8,5 +8,4 @@
 - Point out anything in the code that is unconventional or goes against best practices, so we can fix it together
 
 ## Context
-- This is my first project, intended to help me get a .NET developer job
-- I need to understand everything I write well enough to explain it in interviews
+- I need to understand everything I write well enough to explain it
