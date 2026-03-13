@@ -8,11 +8,12 @@ public interface IReadingService
         int sourceId,
         DateTimeOffset? from,
         DateTimeOffset? to,
-        int? limit);
+        int? limit,
+        CancellationToken ct = default);
 
-    Task<LagDto> GetLagAsync(int sourceId);
+    Task<LagDto> GetLagAsync(int sourceId, CancellationToken ct = default);
 
-    Task<Source?> GetPublicSourceAsync(int sourceId);
+    Task<Source?> GetPublicSourceAsync(int sourceId, CancellationToken ct = default);
 
-    Task<Source?> GetSourceAsync(int sourceId);
+    Task<Source?> GetSourceAsync(int sourceId, CancellationToken ct = default);
 }

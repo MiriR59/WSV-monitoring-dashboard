@@ -1,8 +1,4 @@
-
-using Microsoft.AspNetCore.Authorization.Infrastructure;
-using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Writers;
 using Moq;
 using WSV.Api.Data;
 using WSV.Api.Models;

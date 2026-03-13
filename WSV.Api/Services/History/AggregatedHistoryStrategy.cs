@@ -13,7 +13,7 @@ public class AggregatedHistoryStrategy : IHistoryStrategy
         _context = context;
     }
     
-    public async Task<List<ReadingDto>> GetAsync(int sourceId, DateTimeOffset from, DateTimeOffset to, int limit)
+    public async Task<List<ReadingDto>> GetAsync(int sourceId, DateTimeOffset from, DateTimeOffset to, int limit, CancellationToken ct = default)
     {
         var spanSeconds = (to - from).TotalSeconds;
         var bucketSeconds = (int)(spanSeconds / limit);
@@ -41,7 +41,7 @@ public class AggregatedHistoryStrategy : IHistoryStrategy
                 bucketSeconds,
                 from,
                 to)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         return results;
     }

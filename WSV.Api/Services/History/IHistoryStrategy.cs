@@ -6,6 +6,7 @@ public interface IHistoryStrategy
         int sourceId,
         DateTimeOffset from,
         DateTimeOffset to,
-        int limit
+        int limit,
+        CancellationToken ct = default
     );
 }

@@ -21,7 +21,8 @@ public class RawHistoryStrategy : IHistoryStrategy
         int sourceId,
         DateTimeOffset from,
         DateTimeOffset to,
-        int limit)
+        int limit,
+        CancellationToken ct = default)
     {
         IEnumerable<SourceReading> cacheFiltered = Enumerable.Empty<SourceReading>();
         IEnumerable<SourceReading> readings = Enumerable.Empty<SourceReading>();
@@ -45,7 +46,7 @@ public class RawHistoryStrategy : IHistoryStrategy
                 .Where(u => u.Timestamp >= from)
                 .Where(v => v.Timestamp < to)
                 .OrderByDescending(r => r.Timestamp)  
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
         var merged = new Dictionary<DateTimeOffset, ReadingDto>();

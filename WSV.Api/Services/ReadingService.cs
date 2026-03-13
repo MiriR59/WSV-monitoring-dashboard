@@ -21,7 +21,7 @@ public class ReadingService : IReadingService
         _selector = selector;
     }
 
-    public async Task<List<ReadingDto>> GetHistoryAsync(int sourceId, DateTimeOffset? from, DateTimeOffset? to, int? limit)
+    public async Task<List<ReadingDto>> GetHistoryAsync(int sourceId, DateTimeOffset? from, DateTimeOffset? to, int? limit, CancellationToken ct = default)
     {
         var start = from ?? DateTimeOffset.UtcNow.AddDays(-1);
         var end = to ?? DateTimeOffset.UtcNow;
@@ -33,15 +33,15 @@ public class ReadingService : IReadingService
             .Where(u => u.Timestamp >= start)
             .Where(v => v.Timestamp < end);
             
-        var count = await query.CountAsync();
+        var count = await query.CountAsync(ct);
 
         // Overkill for only 2 GetHistory options, but good OCP application
         var strategy = _selector.Select(count, take);
 
-        return await strategy.GetAsync(sourceId, start, end, take);
+        return await strategy.GetAsync(sourceId, start, end, take, ct);
     }
 
-    public async Task<LagDto> GetLagAsync(int sourceId)
+    public async Task<LagDto> GetLagAsync(int sourceId, CancellationToken ct = default)
     {
         var latestGenerated = _readingCacheService.GetLatestOne(sourceId);
         if(latestGenerated is null)
@@ -52,7 +52,7 @@ public class ReadingService : IReadingService
         var latestDb = await _context.SourceReadings
             .AsNoTracking()
             .Where(r => r.SourceId == sourceId)
-            .MaxAsync(r => (DateTimeOffset?)r.Timestamp);
+            .MaxAsync(r => (DateTimeOffset?)r.Timestamp, ct);
 
         if(latestDb is null)
             return new LagDto{
@@ -71,17 +71,17 @@ public class ReadingService : IReadingService
             DbLag = lagOut};
     }
 
-    public async Task<Source?> GetPublicSourceAsync(int sourceId)
+    public async Task<Source?> GetPublicSourceAsync(int sourceId, CancellationToken ct = default)
     {
         return await _context.Sources
             .AsNoTracking()
-            .SingleOrDefaultAsync(p => p.Id == sourceId && p.IsPublic);
+            .SingleOrDefaultAsync(p => p.Id == sourceId && p.IsPublic, ct);
     }
 
-    public async Task<Source?> GetSourceAsync(int sourceId)
+    public async Task<Source?> GetSourceAsync(int sourceId, CancellationToken ct = default)
     {
         return await _context.Sources
             .AsNoTracking()
-            .SingleOrDefaultAsync(p => p.Id == sourceId);
+            .SingleOrDefaultAsync(p => p.Id == sourceId, ct);
     }
 }
