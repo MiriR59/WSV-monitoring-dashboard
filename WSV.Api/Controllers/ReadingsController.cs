@@ -20,9 +20,6 @@ public class ReadingsController : ControllerBase
         _readingService = readingService;
     }   
 
-    //GET history of single source from Time to Time /api/readings/source/{SourceId}?...
-    //From and To will be added as query information
-    //Pure DB query, DATA-LAKE like
     [HttpGet("source/{sourceId}")]
     [Authorize(Policy = "CanViewAllSources")]
     public async Task <IActionResult> GetHistoryOne(

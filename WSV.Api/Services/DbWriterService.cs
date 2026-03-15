@@ -65,17 +65,17 @@ public class DbWriterService : BackgroundService
 
                 db.SourceReadings.AddRange(batch);
                 await db.SaveChangesAsync(stoppingToken);
+
+                _logger.LogInformation("DB writer tick: target={Target}, wrote={Wrote}, buffered={Buffered}, mode={Mode}",
+                    batchSize, batch.Count, _buffer.BufferedCount, batchSize == _slowBatch ? "SLOW" : "NORMAL");
             }
             catch (Exception ex)
             {
                 // Error logging
                 _logger.LogError(ex, "DB writer failed. Lost {Count} readings from {from} to {to}.",
                     batch.Count, batch.First().Timestamp, batch.Last().Timestamp);
-                continue;
             }
 
-            _logger.LogInformation("DB writer tick: target={Target}, wrote={Wrote}, buffered={Buffered}, mode={Mode}",
-                batchSize, batch.Count, _buffer.BufferedCount, batchSize == _slowBatch ? "SLOW" : "NORMAL");
         }
     }
     // %  returns what remains after the division, slowmode at the start of each cycle

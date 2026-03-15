@@ -7,20 +7,17 @@ namespace WSV.Api.Services;
 // Background services rungs in the bg and periodically generates
 public class GeneratorService : BackgroundService
 {
-    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ISourceBehaviourService _behaviourService;
     private readonly IReadingCacheService _readingCacheService;
     private readonly IDynamicBufferService _readingBufferService;
     private readonly ISourceCacheService _sourceCacheService;
 
     public GeneratorService(
-        IServiceScopeFactory scopeFactory,
         ISourceBehaviourService behaviourService,
         IReadingCacheService readingCacheService,
         IDynamicBufferService readingBufferService,
         ISourceCacheService sourceCacheService)
     {
-        _scopeFactory = scopeFactory;
         _behaviourService = behaviourService;
         _readingCacheService = readingCacheService;
         _readingBufferService = readingBufferService;
