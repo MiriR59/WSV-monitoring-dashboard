@@ -111,7 +111,7 @@ Unit tests are written with xUnit and Moq, covering:
 
 **Other**
 - JWT authentication
-- Role-based authorization
+- Policy-based authorization
 - Docker + Docker Compose
 
 ---
@@ -119,7 +119,7 @@ Unit tests are written with xUnit and Moq, covering:
 
 ## Demo Users & Authorization
 
-The application demonstrates role-based authorization with multiple user roles.
+The application demonstrates policy-based authorization with multiple user roles.
 
 On startup, demo users are seeded automatically.
 
