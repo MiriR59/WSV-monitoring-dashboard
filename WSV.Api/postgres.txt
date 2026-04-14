@@ -1,0 +1,3 @@
+docker run -d   --name postgres   -e POSTGRES_USER=wsv_user   -e POSTGRES_PASSWORD=dashboard   -e POSTGRES_DB=wsv_monitoring   -p 5432:5432   postgres:latest
+docker stop postgres
+docker start postgres
